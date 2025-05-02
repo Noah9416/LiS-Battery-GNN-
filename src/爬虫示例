@@ -1,0 +1,42 @@
+import requests
+from bs4 import BeautifulSoup
+import pandas as pd
+import time
+
+# 目标网页URL（示例：假设某个公开的材料数据库）
+url = "https://example-material-database.com/materials"
+
+# 设置请求头，模拟浏览器访问
+headers = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+}
+
+# 发送HTTP请求获取页面内容
+response = requests.get(url, headers=headers)
+if response.status_code != 200:
+    print("请求失败，状态码：", response.status_code)
+    exit()
+
+# 使用BeautifulSoup解析HTML
+soup = BeautifulSoup(response.text, "html.parser")
+
+# 假设数据在表格中，查找表格元素（需根据实际网页结构调整）
+table = soup.find("table", {"class": "data-table"})
+
+# 提取表头
+headers = []
+for th in table.find("thead").find_all("th"):
+    headers.append(th.text.strip())
+
+# 提取表格数据行
+data = []
+for row in table.find("tbody").find_all("tr"):
+    row_data = []
+    for td in row.find_all("td"):
+        row_data.append(td.text.strip())
+    data.append(row_data)
+
+# 转换为DataFrame并保存为CSV
+df = pd.DataFrame(data, columns=headers)
+df.to_csv("material_data.csv", index=False)
+print("数据已保存到 material_data.csv")
